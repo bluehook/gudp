@@ -1,4 +1,4 @@
-package network
+package common
 
 import (
 	"fmt"
@@ -6,13 +6,13 @@ import (
 )
 
 // 错误处理
-func checkError(err error) {
+func CheckError(err error) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Fatal error： ", err.Error())
 	}
 }
 
 // 日志处理
-func log(log string) {
+func Log(log string) {
 	fmt.Println(log)
 }

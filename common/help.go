@@ -1,11 +1,13 @@
-package network
+package common
 
 import (
 	"bytes"
 	"encoding/binary"
 )
 
-//整形转换成字节
+//#大端字节序转小端字节序
+
+// 整形转换成字节
 func IntToBytes(n int) []byte {
 	x := int32(n)
 	bytesBuffer := bytes.NewBuffer([]byte{})
@@ -13,7 +15,7 @@ func IntToBytes(n int) []byte {
 	return bytesBuffer.Bytes()
 }
 
-//浮点数转换成字节
+// 浮点数转换成字节
 func FloatToBytes(n float32) []byte {
 	x := float32(n)
 	bytesBuffer := bytes.NewBuffer([]byte{})
@@ -21,7 +23,7 @@ func FloatToBytes(n float32) []byte {
 	return bytesBuffer.Bytes()
 }
 
-//双精度转换成字节
+// 双精度转换成字节
 func DoubleToBytes(n float64) []byte {
 	x := float64(n)
 	bytesBuffer := bytes.NewBuffer([]byte{})
@@ -29,7 +31,7 @@ func DoubleToBytes(n float64) []byte {
 	return bytesBuffer.Bytes()
 }
 
-//字节转换成整形
+// 字节转换成整形
 func BytesToInt(b []byte) int {
 	bytesBuffer := bytes.NewBuffer(b)
 	var x int32
@@ -37,7 +39,7 @@ func BytesToInt(b []byte) int {
 	return int(x)
 }
 
-//字节转换成浮点数
+// 字节转换成浮点数
 func BytesToFloat(b []byte) float32 {
 	bytesBuffer := bytes.NewBuffer(b)
 	var x float32
@@ -45,7 +47,7 @@ func BytesToFloat(b []byte) float32 {
 	return float32(x)
 }
 
-//字节转换成双精度
+// 字节转换成双精度
 func BytesToDouble(b []byte) float64 {
 	bytesBuffer := bytes.NewBuffer(b)
 	var x float64
@@ -53,7 +55,7 @@ func BytesToDouble(b []byte) float64 {
 	return float64(x)
 }
 
-//字节转字符串
+// 字节转字符串
 func BytesToString(b []byte) string {
 	bytesBuffer := bytes.NewBuffer(b)
 	var s string

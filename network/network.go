@@ -1,6 +1,7 @@
 package network
 
 import (
+	"../common"
 	"fmt"
 	"net"
 )
@@ -13,6 +14,13 @@ import (
 
 //##UDP底层
 
+// 底层数据包
+type NetworkPacket struct {
+	Addr *net.UDPAddr
+	Buf  []byte
+	Size int
+}
+
 // 网络底层接口
 type Networker interface {
 	Open(port int) bool
@@ -20,13 +28,6 @@ type Networker interface {
 	Close()
 	GetReadChan() chan *NetworkPacket
 	GetWriteChan() chan *NetworkPacket
-}
-
-// 底层数据包
-type NetworkPacket struct {
-	Addr *net.UDPAddr
-	Buf  []byte
-	Size int
 }
 
 // 封装net库的UDP处理
@@ -50,11 +51,11 @@ func (self *NetworkUdp) Open(port int) bool {
 			self.readchan = make(chan *NetworkPacket, 1024)
 			self.writechan = make(chan *NetworkPacket, 1024)
 			self.handler()
-			log("udp server opened.")
+			common.Log("udp server opened.")
 			return true
 		}
 	}
-	checkError(err)
+	common.CheckError(err)
 	return false
 }
 
@@ -69,11 +70,11 @@ func (self *NetworkUdp) Connect(ip string, port int) bool {
 			self.readchan = make(chan *NetworkPacket, 32)
 			self.writechan = make(chan *NetworkPacket, 32)
 			self.handler()
-			log("udp client ready.")
+			common.Log("udp client ready.")
 			return true
 		}
 	}
-	checkError(err)
+	common.CheckError(err)
 	return false
 }
 
@@ -103,7 +104,7 @@ func (self *NetworkUdp) handler() {
 			var buf [512]byte
 			num, addr, err := net.conn.ReadFromUDP(buf[0:])
 			if err != nil {
-				checkError(err)
+				common.CheckError(err)
 				return
 			}
 			net.readchan <- &NetworkPacket{addr, buf[0:], num}
@@ -117,12 +118,12 @@ func (self *NetworkUdp) handler() {
 			if packet.Addr != nil {
 				_, err := net.writeto(packet.Buf, packet.Addr)
 				if err != nil {
-					checkError(err)
+					common.CheckError(err)
 				}
 			} else {
 				_, err := net.write(packet.Buf)
 				if err != nil {
-					checkError(err)
+					common.CheckError(err)
 				}
 			}
 		}
