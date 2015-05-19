@@ -28,7 +28,7 @@ func test_networkudp() {
 	client.GetWriteChan() <- pack
 	client.GetWriteChan() <- pack
 	client.GetWriteChan() <- pack
-
+	server.Close()
 }
 
 func main() {

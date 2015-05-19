@@ -36,6 +36,7 @@ type NetworkUdp struct {
 	conn      *net.UDPConn
 	readchan  chan *NetworkPacket
 	writechan chan *NetworkPacket
+	die       chan bool
 }
 
 // 作为服务端打开监听端口
@@ -81,6 +82,8 @@ func (self *NetworkUdp) Connect(ip string, port int) bool {
 // 关闭底层UDP连接
 func (self *NetworkUdp) Close() {
 	if self.conn != nil {
+		// 终止信号
+		close(self.die)
 		self.conn.Close()
 	}
 }
@@ -98,32 +101,45 @@ func (self *NetworkUdp) GetWriteChan() chan *NetworkPacket {
 // 处理数据
 func (self *NetworkUdp) handler() {
 
+	self.die = make(chan bool)
+
 	//接收
 	go func(net *NetworkUdp) {
 		for {
-			var buf [512]byte
-			num, addr, err := net.conn.ReadFromUDP(buf[0:])
-			if err != nil {
-				common.CheckError(err)
+			select {
+			case <-self.die:
+				common.Log("接收线程终止")
 				return
+			default:
+				var buf [512]byte
+				num, addr, err := net.conn.ReadFromUDP(buf[0:])
+				if err != nil {
+					common.CheckError(err)
+					return
+				}
+				net.readchan <- &NetworkPacket{addr, buf[0:], num}
 			}
-			net.readchan <- &NetworkPacket{addr, buf[0:], num}
 		}
 	}(self)
 
 	//发送
 	go func(net *NetworkUdp) {
 		for {
-			packet := <-net.writechan
-			if packet.Addr != nil {
-				_, err := net.writeto(packet.Buf, packet.Addr)
-				if err != nil {
-					common.CheckError(err)
-				}
-			} else {
-				_, err := net.write(packet.Buf)
-				if err != nil {
-					common.CheckError(err)
+			select {
+			case <-self.die:
+				common.Log("发送线程终止")
+				return
+			case packet := <-net.writechan:
+				if packet.Addr != nil {
+					_, err := net.writeto(packet.Buf, packet.Addr)
+					if err != nil {
+						common.CheckError(err)
+					}
+				} else {
+					_, err := net.write(packet.Buf)
+					if err != nil {
+						common.CheckError(err)
+					}
 				}
 			}
 		}
@@ -150,16 +166,3 @@ func NewNetworkUdp() Networker {
 	nw := new(NetworkUdp)
 	return nw
 }
-
-//##链路层
-
-// 三次握手状态定义
-const (
-	UDPM_INIT = iota //初始化状态
-	UDPM_SYN         //同步状态
-	UDPM_FN          //完成状态
-)
-
-//##流量控制层
-
-//##数据包处理层
