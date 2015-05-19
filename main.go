@@ -9,18 +9,23 @@ import (
 //testing
 func test_networkudp() {
 
-	/* server
 	server := network.NewNetworkUDP()
 	server.Open(4321)
 	go func(readchan chan *network.NetworkPacket) {
-		pack := <-readchan
-		fmt.Println("接收数据2", string(pack.Buf))
+		for {
+			pack := <-readchan
+			fmt.Println("接收数据:", string(pack.Buf))
+			time.Sleep(1e9)
+		}
 	}(server.GetReadChan())
-	*/
+
 	client := network.NewNetworkUDP()
 	client.Connect("localhost", 4321)
 	pack := new(network.NetworkPacket)
 	pack.Buf = []byte("hello server.")
+	client.GetWriteChan() <- pack
+	client.GetWriteChan() <- pack
+	client.GetWriteChan() <- pack
 	client.GetWriteChan() <- pack
 }
 

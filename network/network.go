@@ -102,7 +102,6 @@ func (self *NetworkUdp) handler() {
 		for {
 			var buf [512]byte
 			num, addr, err := net.conn.ReadFromUDP(buf[0:])
-			fmt.Println("接收数据1")
 			if err != nil {
 				checkError(err)
 				return
@@ -115,7 +114,6 @@ func (self *NetworkUdp) handler() {
 	go func(net *NetworkUdp) {
 		for {
 			packet := <-net.writechan
-			fmt.Println("发送数据1:")
 			if packet.Addr != nil {
 				_, err := net.writeto(packet.Buf, packet.Addr)
 				if err != nil {
@@ -123,7 +121,6 @@ func (self *NetworkUdp) handler() {
 				}
 			} else {
 				_, err := net.write(packet.Buf)
-				fmt.Println("发送数据2:")
 				if err != nil {
 					checkError(err)
 				}
