@@ -11,13 +11,19 @@ func test_networkudp() {
 
 	server := network.NewNetworkUdp()
 	server.Open(4321)
-	go func(readchan chan *network.NetworkPacket) {
+	die := make(chan bool)
+	go func(readchan chan *network.NetworkPacket, d chan bool) {
 		for {
-			pack := <-readchan
-			fmt.Println("接收数据:", string(pack.Buf))
-			time.Sleep(1e9)
+			select {
+			case <-die:
+				fmt.Println("MAIN接受数据线程关闭.")
+				return
+			case pack := <-readchan:
+				fmt.Println("接收数据:", string(pack.Buf))
+			}
+
 		}
-	}(server.GetReadChan())
+	}(server.GetReadChan(), die)
 
 	client := network.NewNetworkUdp()
 	client.Connect("localhost", 4321)
@@ -28,7 +34,40 @@ func test_networkudp() {
 	client.GetWriteChan() <- pack
 	client.GetWriteChan() <- pack
 	client.GetWriteChan() <- pack
+
+	time.Sleep(1e9)
+	close(die)
 	server.Close()
+	client.Close()
+
+	time.Sleep(1e9)
+	server.Open(4321)
+	die = make(chan bool)
+	go func(readchan chan *network.NetworkPacket, d chan bool) {
+		for {
+			select {
+			case <-die:
+				fmt.Println("MAIN接受数据线程关闭.")
+				return
+			case pack := <-readchan:
+				fmt.Println("接收数据:", string(pack.Buf))
+			}
+
+		}
+	}(server.GetReadChan(), die)
+	client.Connect("localhost", 4321)
+	pack = new(network.NetworkPacket)
+	pack.Buf = []byte("hello server2.")
+	client.GetWriteChan() <- pack
+	client.GetWriteChan() <- pack
+	client.GetWriteChan() <- pack
+	client.GetWriteChan() <- pack
+	client.GetWriteChan() <- pack
+
+	time.Sleep(1e9)
+	close(die)
+	server.Close()
+	client.Close()
 }
 
 func main() {

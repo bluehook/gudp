@@ -52,7 +52,7 @@ func (self *NetworkUdp) Open(port int) bool {
 			self.readchan = make(chan *NetworkPacket, 1024)
 			self.writechan = make(chan *NetworkPacket, 1024)
 			self.handler()
-			common.Log("udp server opened.")
+			common.Log("NetworkUdp监听开始.")
 			return true
 		}
 	}
@@ -71,7 +71,7 @@ func (self *NetworkUdp) Connect(ip string, port int) bool {
 			self.readchan = make(chan *NetworkPacket, 32)
 			self.writechan = make(chan *NetworkPacket, 32)
 			self.handler()
-			common.Log("udp client ready.")
+			common.Log("NetworkUdp打开连接.")
 			return true
 		}
 	}
@@ -85,6 +85,7 @@ func (self *NetworkUdp) Close() {
 		// 终止信号
 		close(self.die)
 		self.conn.Close()
+		common.Log("NetworkUdp关闭连接.")
 	}
 }
 
@@ -108,16 +109,16 @@ func (self *NetworkUdp) handler() {
 		for {
 			select {
 			case <-self.die:
-				common.Log("接收线程终止")
+				common.Log("handler接收线程终止.")
 				return
 			default:
 				var buf [512]byte
 				num, addr, err := net.conn.ReadFromUDP(buf[0:])
-				if err != nil {
-					common.CheckError(err)
-					return
+				if err == nil {
+					net.readchan <- &NetworkPacket{addr, buf[0:], num}
+				} else {
+					/*关闭连接时接收会出错属于正常情况*/
 				}
-				net.readchan <- &NetworkPacket{addr, buf[0:], num}
 			}
 		}
 	}(self)
@@ -127,7 +128,7 @@ func (self *NetworkUdp) handler() {
 		for {
 			select {
 			case <-self.die:
-				common.Log("发送线程终止")
+				common.Log("handler发送线程终止.")
 				return
 			case packet := <-net.writechan:
 				if packet.Addr != nil {
@@ -138,7 +139,7 @@ func (self *NetworkUdp) handler() {
 				} else {
 					_, err := net.write(packet.Buf)
 					if err != nil {
-						common.CheckError(err)
+						/*关闭连接时发送会出错属于正常情况*/
 					}
 				}
 			}
