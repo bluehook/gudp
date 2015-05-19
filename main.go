@@ -9,7 +9,7 @@ import (
 //testing
 func test_networkudp() {
 
-	server := network.NewNetworkUDP()
+	server := network.NewNetworkUdp()
 	server.Open(4321)
 	go func(readchan chan *network.NetworkPacket) {
 		for {
@@ -19,7 +19,7 @@ func test_networkudp() {
 		}
 	}(server.GetReadChan())
 
-	client := network.NewNetworkUDP()
+	client := network.NewNetworkUdp()
 	client.Connect("localhost", 4321)
 	pack := new(network.NetworkPacket)
 	pack.Buf = []byte("hello server.")

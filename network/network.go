@@ -144,7 +144,8 @@ func (self *NetworkUdp) read(b []byte) (int, error) {
 	return self.conn.Read(b)
 }
 
-func NewNetworkUDP() Networker {
+// 创建UDP网络对象
+func NewNetworkUdp() Networker {
 	nw := new(NetworkUdp)
 	return nw
 }
