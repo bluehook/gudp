@@ -116,8 +116,6 @@ func (self *NetworkUdp) handler() {
 				num, addr, err := net.conn.ReadFromUDP(buf[0:])
 				if err == nil {
 					net.readchan <- &NetworkPacket{addr, buf[0:], num}
-				} else {
-					/*关闭连接时接收会出错属于正常情况*/
 				}
 			}
 		}
@@ -132,15 +130,9 @@ func (self *NetworkUdp) handler() {
 				return
 			case packet := <-net.writechan:
 				if packet.Addr != nil {
-					_, err := net.writeto(packet.Buf, packet.Addr)
-					if err != nil {
-						common.CheckError(err)
-					}
+					net.writeto(packet.Buf, packet.Addr)
 				} else {
-					_, err := net.write(packet.Buf)
-					if err != nil {
-						/*关闭连接时发送会出错属于正常情况*/
-					}
+					net.write(packet.Buf)
 				}
 			}
 		}
