@@ -135,7 +135,7 @@ func testingListAndMap() {
 	count1 /= 50
 	count2 /= 50
 	count3 /= 50
-	fmt.Println("MAP平均插入100000个元素,遍历,查询分别用时（毫秒）：", count1, count2, count3)
+	fmt.Println("MAP插入100000个元素,遍历,查询分别用时（毫秒）(50次平均值)：", count1, count2, count3)
 
 	count1, count2, count3 = 0, 0, 0
 	for i := 0; i < 50; i++ {
@@ -147,7 +147,7 @@ func testingListAndMap() {
 	count1 /= 50
 	count2 /= 50
 	count3 /= 50
-	fmt.Println("List平均插入100000个元素,遍历,查询分别用时（毫秒）：", count1, count2, count3)
+	fmt.Println("List平均插入100000个元素,遍历,查询分别用时（毫秒）(50次平均值)：", count1, count2, ">1分钟")
 }
 
 func main() {
