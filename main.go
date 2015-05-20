@@ -154,7 +154,7 @@ func main() {
 
 	fmt.Println("GUDP")
 	//testingListAndMap()
-	test_networkudp()
+	//test_networkudp()
 	for {
 		<-time.After(1e9)
 	}
