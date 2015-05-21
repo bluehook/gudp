@@ -1,7 +1,7 @@
 package network
 
 import (
-	"net"
+//"net"
 )
 
 //##链路层
@@ -36,11 +36,23 @@ func (self Session) Equal(other Session) bool {
 	return myId == otherId
 }
 
-// 连接对象接口
+//###连接对象接口
+// 服务端客户端通用
+// 服务端: 为每个连接创建一个连接对象与客户端的连接对象通信
+// 客户端: 只创建一个连接对象与服务端通信
+// 作用: 为上层逻辑提供可靠透明的基于协议数据包的网络底层
 type NetConnectioner interface {
 	SetSession(id Session)
 	GetSession() Session
-	GetUdpAddr() *net.UDPAddr
+	Send([]byte)
+	Recv([]byte)
+	IsConnected() bool //是否已连接
+	SetConnected(bool)
+	KeepAlive()         //保持连接,重置超时时间
+	CheckTimeout()      //检查超时
+	Ping()              //联通性检查
+	Ack()               //数据包确认
+	BuildPacketHeader() //生成包头
 }
 
 //##流量控制层

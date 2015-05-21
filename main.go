@@ -155,6 +155,15 @@ func main() {
 	fmt.Println("GUDP")
 	//testingListAndMap()
 	//test_networkudp()
+	for i := 0; i < 3000; i++ {
+		pkSequenceNumber := i
+		mLastSeqRecvd := i + 4
+		pkSequenceNumber = pkSequenceNumber | (mLastSeqRecvd & 0xFFFFFE00)
+		if pkSequenceNumber < mLastSeqRecvd {
+			pkSequenceNumber += 0x200
+		}
+		fmt.Println(pkSequenceNumber, pkSequenceNumber)
+	}
 	for {
 		<-time.After(1e9)
 	}
