@@ -48,11 +48,52 @@ type NetConnectioner interface {
 	Recv([]byte)
 	IsConnected() bool //是否已连接
 	SetConnected(bool)
-	KeepAlive()         //保持连接,重置超时时间
-	CheckTimeout()      //检查超时
-	Ping()              //联通性检查
-	Ack()               //数据包确认
-	BuildPacketHeader() //生成包头
+	KeepAlive()              //保持连接,重置超时时间
+	CheckTimeout(int64) bool //检查超时
+	Ping()                   //联通性检查
+	Ack()                    //数据包确认
+	BuildPacketHeader()      //生成包头
+}
+
+//###连接对象
+// 实现NetConnectioner接口
+type NetConn struct {
+	session          Session
+	bConnected       bool  //是否已经连接
+	pingSendCount    int   //收到最后一次回应之后累计发出ping次数
+	pingRepeatCount  int   //容许ping累计次数
+	lastPingSendTime int64 //最后一次ping时间
+}
+
+func (self *NetConn) CheckTimeout(time int64) bool {
+
+	if !self.bConnected {
+		return false
+	}
+	/*每6秒ping一次*/
+	if time > self.lastPingSendTime+6e9 {
+		if self.pingSendCount >= self.pingRepeatCount {
+			return true
+		}
+	}
+	self.lastPingSendTime = time
+	self.pingSendCount++
+	self.Ping()
+
+	return false
+}
+
+func (self *NetConn) KeepAlive() {
+	self.lastPingSendTime = 0 /*当前时间*/
+	self.pingSendCount = 0
+}
+
+func (self *NetConn) Ping() {
+
+}
+
+func (self *NetConn) Ack() {
+
 }
 
 //##流量控制层
