@@ -2,6 +2,7 @@
 // HTTPS clone URL: https://github.com/bluehook/gudp.git
 // Blog: http://monsterapp.cn
 // Email: bluehook@126.com
+
 package network
 
 import (
