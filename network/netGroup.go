@@ -17,7 +17,7 @@ type NetGroup struct {
 	base      uint64 //session生成基数
 }
 
-//##单例
+//##全局只存在一个连接管理
 var _instanceNetGroup *NetGroup
 
 func GetConnGroup() *NetGroup {

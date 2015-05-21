@@ -18,6 +18,9 @@ import (
 // 4. 数据包处理层
 
 //##UDP底层
+const (
+	PacketBufSize = 512 //数据包最大字节数
+)
 
 // 底层数据包
 type NetworkPacket struct {
@@ -117,7 +120,7 @@ func (self *NetworkUdp) handler() {
 				log.Println("handler接收线程终止.")
 				return
 			default:
-				var buf [512]byte
+				var buf [PacketBufSize]byte
 				num, addr, err := net.conn.ReadFromUDP(buf[0:])
 				if err == nil {
 					net.readchan <- &NetworkPacket{addr, buf[0:], num}

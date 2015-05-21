@@ -1,11 +1,13 @@
 // Copyright 2015 The GUDP Authors. All rights reserved.
 // HTTPS clone URL: https://github.com/bluehook/gudp.git
-// Blog: http://monsterapp.cn Email: bluehook@126.com
+// Blog: http://monsterapp.cn
+// Email: bluehook@126.com
 
 package network
 
 import (
 //"net"
+//"io"
 )
 
 //##链路层
@@ -48,15 +50,13 @@ func (self Session) Equal(other Session) bool {
 type NetConnectioner interface {
 	SetSession(id Session)
 	GetSession() Session
-	Send([]byte)
-	Recv([]byte)
 	IsConnected() bool //是否已连接
 	SetConnected(bool)
-	KeepAlive()              //保持连接,重置超时时间
-	CheckTimeout(int64) bool //检查超时
-	Ping()                   //联通性检查
-	Ack()                    //数据包确认
-	BuildPacketHeader()      //生成包头
+	KeepAlive()                //保持连接,重置超时时间
+	CheckTimeout(int64) bool   //检查超时
+	Ping()                     //联通性检查
+	Ack()                      //数据包确认
+	BuildPacketHeader(*Packet) //写入包头
 }
 
 //###连接对象
