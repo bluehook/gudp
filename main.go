@@ -1,3 +1,6 @@
+// Copyright 2015 The GUDP Authors. All rights reserved.
+// HTTPS clone URL: https://github.com/bluehook/gudp.git
+
 package main
 
 import (
