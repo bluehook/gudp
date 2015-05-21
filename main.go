@@ -2,9 +2,10 @@ package main
 
 import (
 	"./network"
-	"container/list"
+	"bytes"
+	"encoding/binary"
 	"fmt"
-	"strconv"
+	"log"
 	"time"
 )
 
@@ -74,8 +75,12 @@ func test_networkudp() {
 
 func main() {
 
-	fmt.Println("GUDP")
-	test_networkudp()
+	log.Println("GUDP")
+	//test_networkudp()
+
+	packet := network.NewPacket(binary.LittleEndian)
+	packet.SetBuf(new(bytes.Buffer))
+
 	for {
 		<-time.After(1e9)
 	}
