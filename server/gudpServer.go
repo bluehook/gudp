@@ -39,7 +39,7 @@ func (self *GudpServer) Update() {
 	for {
 		select {
 		case <-self.die:
-			log.Println("handler接收线程终止.")
+			log.Println("GudpServer主循环退出.")
 			return
 		default:
 			/*开始主循环更新*/
