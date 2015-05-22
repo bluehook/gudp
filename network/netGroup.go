@@ -17,14 +17,9 @@ type NetGroup struct {
 	base      uint64 //session生成基数
 }
 
-//##全局只存在一个连接管理
-var _instanceNetGroup *NetGroup
-
-func GetConnGroup() *NetGroup {
-	if _instanceNetGroup == nil {
-		_instanceNetGroup = &NetGroup{connGroup: make(map[ConnId]NetConnectioner)}
-	}
-	return _instanceNetGroup
+//创建对象容器
+func NewNetGroup() *NetGroup {
+	return &NetGroup{connGroup: make(map[ConnId]NetConnectioner), base: 0}
 }
 
 //##基本操作
