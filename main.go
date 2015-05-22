@@ -84,7 +84,9 @@ func main() {
 	//test_networkudp()
 
 	packet := network.NewPacket(binary.LittleEndian)
-	packet.SetBuf(network.GetPacketBuffer())
+	packet.SetBuf(new(bytes.Buffer))
+	b := new(bytes.Buffer)
+	b.Reset()
 
 	for {
 		<-time.After(1e9)

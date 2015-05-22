@@ -6,13 +6,19 @@
 package network
 
 import (
-//"net"
-//"io"
+	//"net"
+	//"io"
+	"bytes"
 )
 
 //##链路层
 // 基于滑动窗口的可信UDP
 // 负责建立连接，同步，超时重建
+
+// 滑动窗口尺寸
+const (
+	WindowSize = 32
+)
 
 // Session = ConnId(48bit) + SessionFlag(16bit)
 type Session uint64
@@ -52,21 +58,22 @@ type NetConnectioner interface {
 	GetSession() Session
 	IsConnected() bool //是否已连接
 	SetConnected(bool)
-	KeepAlive()                //保持连接,重置超时时间
-	CheckTimeout(int64) bool   //检查超时
-	Ping()                     //联通性检查
-	Ack()                      //数据包确认
-	BuildPacketHeader(*Packet) //写入包头
+	KeepAlive()              //保持连接,重置超时时间
+	CheckTimeout(int64) bool //检查超时
+	Ping()                   //联通性检查
+	Ack()                    //数据包确认
+	ProcessRawPacket([]byte) //处理底层包
 }
 
 //###连接对象
 // 实现NetConnectioner接口
 type NetConn struct {
 	session          Session
-	bConnected       bool  //是否已经连接
-	pingSendCount    int   //收到最后一次回应之后累计发出ping次数
-	pingRepeatCount  int   //容许ping累计次数
-	lastPingSendTime int64 //最后一次ping时间
+	bConnected       bool                      //是否已经连接
+	pingSendCount    int                       //收到最后一次回应之后累计发出ping次数
+	pingRepeatCount  int                       //容许ping累计次数
+	lastPingSendTime int64                     //最后一次ping时间
+	bufList          [WindowSize]*bytes.Buffer //数据包缓存列表
 }
 
 func (self *NetConn) CheckTimeout(time int64) bool {
@@ -97,6 +104,10 @@ func (self *NetConn) Ping() {
 }
 
 func (self *NetConn) Ack() {
+
+}
+
+func (self *NetConn) ProcessRawPacket([]byte) {
 
 }
 
