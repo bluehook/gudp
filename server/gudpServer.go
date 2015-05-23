@@ -11,16 +11,26 @@ import (
 	"time"
 )
 
+//#服务端主循环接口
+// 由上层实现，在GudpServer中即插即用
+type GudpUpdater interface {
+	//如果返回false表示服务结束,将关闭GudpServer
+	Update(elapsed int64) bool
+	//数据包处理
+	HandlePacket(*network.Packet)
+}
+
 //#可信UDP服务端
 // GudpServer为上层业务逻辑提供一层透明的网络服务
 // GudpServer维护一个连接列表，内部有自己的包格式
 // 发包时对上层数据包进行封装，收包时解封上层数据包
 type GudpServer struct {
-	net       network.Networker
-	group     *network.NetGroup //连接列表
-	die       chan bool         //loop线程关闭信号
-	timeNs    int64             //时间戳(纳秒)
-	elapsedNs int64             //2次更新间隔时间
+	net         network.Networker
+	group       *network.NetGroup //连接列表
+	die         chan bool         //loop线程关闭信号
+	timeNs      int64             //时间戳(纳秒)
+	elapsedNs   int64             //2次更新间隔时间
+	GudpUpdater                   //主循环更新
 }
 
 //##创建服务器
@@ -36,6 +46,8 @@ func NewGudpServer() *GudpServer {
 
 // GudpServer主循环
 func (self *GudpServer) Update() {
+
+	log.Println("GudpServer主循环开启.")
 	for {
 		select {
 		case <-self.die:
@@ -46,17 +58,46 @@ func (self *GudpServer) Update() {
 			tmpTimeNs := time.Now().UnixNano()
 			self.elapsedNs = tmpTimeNs - self.timeNs
 			self.timeNs = tmpTimeNs
+			if !self.GudpUpdater.Update(self.elapsedNs) {
+				self.Close()
+				log.Println("GudpServer主循环主动退出.")
+				return
+			}
 		}
 	}
 }
 
-// 启动住循环更新
-func (self *GudpServer) OpenUpdate() {
-	self.die = make(chan bool)
-	go self.Update()
+// GudpServer数据包接收
+func (self *GudpServer) HandlePacket() {
+
+	log.Println("GudpServer数据包接收开启.")
+	readchan := self.net.GetReadChan()
+	for recv := range readchan {
+		select {
+		case <-self.die:
+			log.Println("GudpServer数据包接收退出.")
+			return
+		default:
+			// 1. 解压底层数据包
+			// 2. 生成Packet交上层
+			log.Println(recv)
+		}
+	}
 }
 
-// 关闭主循环更新
-func (self *GudpServer) CloseUpdate() {
+// 开始服务
+func (self *GudpServer) Start() {
+	self.die = make(chan bool)
+	if self.GudpUpdater != nil {
+		//开启主循环
+		go self.Update()
+		//开启数据接收线程
+		go self.HandlePacket()
+	}
+}
+
+// 关闭服务
+func (self *GudpServer) Close() {
 	close(self.die)
+	self.net.Close()
 }
