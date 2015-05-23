@@ -58,7 +58,7 @@ type TimeUpdater interface {
 // 客户端: 只创建一个连接对象与服务端通信
 // 作用: 为上层逻辑提供可靠透明的基于协议数据包的网络底层
 type NetConnectioner interface {
-	SetSession(id Session)
+	SetSession(Session)
 	GetSession() Session
 	IsConnected() bool //是否已连接
 	SetConnected(bool)
@@ -78,7 +78,24 @@ type NetConn struct {
 	pingSendCount    int                       //收到最后一次回应之后累计发出ping次数
 	pingRepeatCount  int                       //容许ping累计次数
 	lastPingSendTime int64                     //最后一次ping时间
+	totalTime        int64                     //累计时间,作为当前时间使用
 	bufList          [WindowSize]*bytes.Buffer //数据包缓存列表
+}
+
+func (self *NetConn) SetSession(id Session) {
+	self.session = id
+}
+
+func (self *NetConn) GetSession() Session {
+	return self.session
+}
+
+func (self *NetConn) SetConnected(b bool) {
+	self.bConnected = b
+}
+
+func (self *NetConn) IsConnected() bool {
+	return self.bConnected
 }
 
 func (self *NetConn) CheckTimeout(time int64) bool {
@@ -100,7 +117,7 @@ func (self *NetConn) CheckTimeout(time int64) bool {
 }
 
 func (self *NetConn) KeepAlive() {
-	self.lastPingSendTime = 0 /*当前时间*/
+	self.lastPingSendTime = self.totalTime
 	self.pingSendCount = 0
 }
 
@@ -117,6 +134,10 @@ func (self *NetConn) ProcessRawPacket([]byte) {
 }
 
 func (self *NetConn) Update(elapsed int64) bool {
+
+	//设置累计时间
+	self.totalTime += elapsed
+
 	return true
 }
 
