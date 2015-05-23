@@ -51,3 +51,10 @@ func (self *NetGroup) GetBySession(session Session) (conn NetConnectioner, ok bo
 	conn, ok = self.connGroup[id]
 	return
 }
+
+// 遍历
+func (self *NetGroup) Iteration(call func(NetConnectioner)) {
+	for _, conn := range self.connGroup {
+		call(conn)
+	}
+}

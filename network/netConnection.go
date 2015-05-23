@@ -19,7 +19,7 @@ const (
 	WindowSize = 32
 )
 
-// Session = ConnId(48bit) + SessionFlag(16bit)
+// 会话ID: Session = ConnId(48bit) + SessionFlag(16bit)
 type Session uint64
 type SessionFlag uint16
 type ConnId uint64
@@ -47,6 +47,11 @@ func (self Session) Equal(other Session) bool {
 	return myId == otherId
 }
 
+//###通用更新者接口
+type TimeUpdater interface {
+	Update(elapsed int64) bool
+}
+
 //###连接对象接口
 // 服务端客户端通用
 // 服务端: 为每个连接创建一个连接对象与客户端的连接对象通信
@@ -62,6 +67,7 @@ type NetConnectioner interface {
 	Ping()                   //联通性检查
 	Ack()                    //数据包确认
 	ProcessRawPacket([]byte) //处理底层包
+	TimeUpdater              //更新
 }
 
 //###连接对象
@@ -108,6 +114,10 @@ func (self *NetConn) Ack() {
 
 func (self *NetConn) ProcessRawPacket([]byte) {
 
+}
+
+func (self *NetConn) Update(elapsed int64) bool {
+	return true
 }
 
 //##流量控制层

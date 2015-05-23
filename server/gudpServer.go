@@ -11,29 +11,29 @@ import (
 	"time"
 )
 
-//#服务端主循环接口
+//#工作者接口
 // 由上层实现，在GudpServer中即插即用
-type GudpUpdater interface {
-	//如果返回false表示服务结束,将关闭GudpServer
-	Update(elapsed int64) bool
+type GudpWorker interface {
+	//更新者，返回false表示服务结束,将关闭GudpServer
+	network.TimeUpdater
 	//数据包处理
 	HandlePacket(*network.Packet)
 }
 
-//#可信UDP服务端
+//#可信UDP服务
 // GudpServer为上层业务逻辑提供一层透明的网络服务
 // GudpServer维护一个连接列表，内部有自己的包格式
 // 发包时对上层数据包进行封装，收包时解封上层数据包
 type GudpServer struct {
-	net         network.Networker
-	group       *network.NetGroup //连接列表
-	die         chan bool         //loop线程关闭信号
-	timeNs      int64             //时间戳(纳秒)
-	elapsedNs   int64             //2次更新间隔时间
-	GudpUpdater                   //主循环更新
+	net        network.Networker
+	group      *network.NetGroup //连接列表
+	die        chan bool         //loop线程关闭信号
+	timeNs     int64             //时间戳(纳秒)
+	elapsedNs  int64             //2次更新间隔时间
+	GudpWorker                   //工作者
 }
 
-//##创建服务器
+//##创建服务
 func NewGudpServer() *GudpServer {
 
 	gudp := &GudpServer{}
@@ -58,7 +58,12 @@ func (self *GudpServer) Update() {
 			tmpTimeNs := time.Now().UnixNano()
 			self.elapsedNs = tmpTimeNs - self.timeNs
 			self.timeNs = tmpTimeNs
-			if !self.GudpUpdater.Update(self.elapsedNs) {
+			// 推进底层更新
+			self.group.Iteration(func(conn network.NetConnectioner) {
+				conn.Update(self.elapsedNs)
+			})
+			// 推进工作者更新
+			if !self.GudpWorker.Update(self.elapsedNs) {
 				self.Close()
 				log.Println("GudpServer主循环主动退出.")
 				return
@@ -88,7 +93,7 @@ func (self *GudpServer) HandlePacket() {
 // 开始服务
 func (self *GudpServer) Start() {
 	self.die = make(chan bool)
-	if self.GudpUpdater != nil {
+	if self.GudpWorker != nil {
 		//开启主循环
 		go self.Update()
 		//开启数据接收线程
