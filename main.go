@@ -22,7 +22,7 @@ func (self *MyWork) Update(elapsed int64) bool {
 }
 
 func (self *MyWork) HandlePacket(packet *network.Packet) {
-
+	//响应服务端
 }
 
 func main() {
